@@ -2,9 +2,9 @@
 
 Simple Query Library.
 <hr>
-İnsert
-Update
-Delete
-Find
+İnsert,
+Update,
+Delete,
+Find,
 Select
 
