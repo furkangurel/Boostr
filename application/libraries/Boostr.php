@@ -60,15 +60,36 @@ class Boostr
         $this->error(3);        
     }
 
-    function select($var=array(),$order=array())
-    {
-        if(!is_array($order))
+    function select($var=array(),$order=null)
+    {   
+        $ci=get_instance();
+
+        if(!is_array($var))
+            {
+                $this->error(7);
+            }
+
+        if($order!=null)
         {
-            $this->error(4);
+            if(!is_array($order))
+            {
+                $this->error(4);
+            }
+        }
+        
+
+        if($order==null)
+        {
+             $results=$ci->db
+            ->from($this->table)
+            ->where($var)
+            ->get()
+            ->result();
+            return $results;
         }
         $row=array_keys($order);
         $val=array_values($order);
-        $ci=get_instance();
+
         $results=$ci->db
         ->from($this->table)
         ->where($var)
@@ -173,6 +194,10 @@ class Boostr
                 case 6:
                 $error='Veri güncellemek için data array() olarak  gönderilmelidir.';
                 break;
+                case 7:
+                $error='Listelemek  için where sorgunuz array() olarak  gönderilmelidir.';
+                break;
+
         }
        echo $error;
        die();
