@@ -1,10 +1,12 @@
 # Boostr
 
 Simple Query Library.
-<hr>
 İnsert,
 Update,
 Delete,
 Find,
 Select
+
+
+Tutorial : https://www.youtube.com/watch?v=W_jxi-bCnK4&feature=youtu.be
 
