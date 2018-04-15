@@ -13,8 +13,6 @@ Tutorial : https://www.youtube.com/watch?v=W_jxi-bCnK4
 
 ## Usage
 
-Config -> Autoload.php 
-
 $autoload['config'] = array('boostr');
 
 ```
