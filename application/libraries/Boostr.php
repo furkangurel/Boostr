@@ -28,7 +28,7 @@ class Boostr
             $this->error(1);
         }elseif(!$ci->db->table_exists($table))
         {
-            $this->error(2);
+            $this->error(3);
         }
     }
 
@@ -174,28 +174,25 @@ class Boostr
         switch ($err) 
         {
                 case 0:
-                $error='Boostr Kullanabilmek için Config->boostr.php üzerinden system="on" olarak ayarlayın.';
+                $error='İf use the Boostr make the system on. Config => boostr.php => system="on"';
                 break;
                 case 1:
-                $error='Tablo Adı belirtmediniz.';
-                break;
-                case 2:
-                $error=$this->table.' adında Tablo bulunamadı.';
+                $error='You have not specified a Table Name.';
                 break;
                 case 3:
-                $error=$this->table.' adında Tablo bulunamadı.';
+                $error="Table named ".$this->table." was not found.";
                 break;
                 case 4:
-                $error='order_by verisi array olarak gönderilmelidir.';
+                $error='Order_by data should be sent as an array().';
                 break;
                 case 5:
-                $error='Veri eklemek için data array() olarak  gönderilmelidir.';
+                $error='İnsert data should be sent as an array()';
                 break;
                 case 6:
-                $error='Veri güncellemek için data array() olarak  gönderilmelidir.';
+                $error='Update data should be sent as an array()';
                 break;
                 case 7:
-                $error='Listelemek  için where sorgunuz array() olarak  gönderilmelidir.';
+                $error='Where query should be sent as an array()';
                 break;
 
         }
