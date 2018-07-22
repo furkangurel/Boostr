@@ -1,4 +1,4 @@
-<?php
+<?php namespace Boostr;
 
 /*
 |----------------------------------------------------------------------------------------------------------------------|
@@ -10,46 +10,35 @@
 |----------------------------------------------------------------------------------------------------------------------|
 */
 
-
-class Boostr
+class Model 
 {
-    public $table=null;
 
-    function __construct($table=null) 
-    {
-        $this->table=$table;
-        $ci=get_instance();
-        if(config_item('system')=="off")
-        {
-            $this->error(0);
-        }
-        if($table==null)
-        {
-            $this->error(1);
-        }elseif(!$ci->db->table_exists($table))
-        {
-            $this->error(3);
-        }
-    }
+	protected $ci = null;
+	protected $table = "";
 
-    function find($var)
+	function __construct()
+	{
+		$this->ci =& get_instance();
+	}
+
+
+	protected function find($var)
     {
-        $ci=get_instance();
         if(is_array($var))    
         {
-            $results=$ci->db 
+            $results=$this->ci->db 
             ->from($this->table)
             ->where($var)
             ->get()
             ->row();
             return $results;    
         }
-        $fields = $ci->db->field_data($this->table);
+        $fields = $this->ci->db->field_data($this->table);
         foreach ($fields as $field)
         {
                 if($field->primary_key)
                 {
-                    $results=$ci->db
+                    $results=$this->ci->db
                     ->from($this->table)
                     ->where($field->name,$var)
                     ->get()
@@ -60,62 +49,53 @@ class Boostr
         $this->error(3);        
     }
 
-    function select($var=array(),$order=null)
-    {   
-        $ci=get_instance();
-
-        if(!is_array($var))
-            {
-                $this->error(7);
-            }
-
+   protected function select($var=array(),$order=null,$limit=null)
+    {  
+    	$order=null; 
+    	$by=null; 
+        if(!is_array($var)){$this->error(7);}
         if($order!=null)
         {
-            if(!is_array($order))
+        	if(is_array($order))
+        	{
+        		$row=array_keys($order);
+        		$val=array_values($order);
+        		$order=$row[0];
+        		$by=$val[0];
+        	}
+            else
             {
                 $this->error(4);
             }
         }
-        
-
-        if($order==null)
-        {
-             $results=$ci->db
-            ->from($this->table)
-            ->where($var)
-            ->get()
-            ->result();
-            return $results;
-        }
-        $row=array_keys($order);
-        $val=array_values($order);
-
-        $results=$ci->db
+       
+       
+        $results=$this->ci->db
         ->from($this->table)
         ->where($var)
-        ->order_by($row[0],$val[0])
+        ->order_by($order,$by)
+        ->limit($limit)
         ->get()
         ->result();
         return $results;
         $this->error(3);    
     }
 
-    function delete($var)
+   protected function delete($var)
     {
-        $ci=get_instance(); 
-        if(is_array($var))    // Variable Arraymı
+        if(is_array($var))
         {
-           $results=$ci
+           $results=$this->ci
            ->db
            ->delete($this->table,$var);
            return $results;    
         }
-        $fields = $ci->db->field_data($this->table);
+        $fields = $this->ci->db->field_data($this->table);
         foreach ($fields as $field)
         {
                 if($field->primary_key)
                 {
-                    $results=$ci
+                    $results=$this->ci
                     ->db
                     ->delete($this->table,array($field->name=>$var));
                     return $results;    
@@ -124,21 +104,19 @@ class Boostr
         $this->error(3); 
     }
 
-     function insert($var=array())
+   protected  function insert($var=array())
    {
-        $ci=get_instance();
         if(is_array($var))    
         {
-            $results=$ci->db
+            $results=$this->ci->db
             ->insert($this->table,$var);
             return $results;
         }
         $this->error(5);
    }
 
-    function update($var,$data)
+   protected function update($var,$data)
     {
-        $ci=get_instance();
 
         if(!is_array($data))
         {
@@ -147,18 +125,18 @@ class Boostr
 
         if(is_array($var))    
         {
-            $results=$ci->db
+            $results=$this->ci->db
             ->where($var)
             ->update($this->table,$data);
             return $results;
         }else
         {
-            $fields = $ci->db->field_data($this->table);
+            $fields = $this->ci->db->field_data($this->table);
             foreach ($fields as $field)
             {
                     if($field->primary_key)
                     {
-                       $results=$ci->db
+                       $results=$this->ci->db
                         ->where($field->name,$var)
                         ->update($this->table,$data);
                         return $results;
@@ -168,8 +146,99 @@ class Boostr
         }
     }
 
+    protected function count($var=array())
+    {
+    	if(!is_array($var)){return $this->error(3);}
 
-     function error($err)
+    	$results=$this->ci->db
+        ->from($this->table)
+        ->where($var)
+        ->count_all_results();
+        return $results;   
+    }
+
+    protected function like($var=array(),$order=null,$limit=null)
+    {  
+    	$order=null; 
+    	$by=null; 
+        if(!is_array($var)){$this->error(7);}
+        if($order!=null)
+        {
+        	if(is_array($order))
+        	{
+        		$row=array_keys($order);
+        		$val=array_values($order);
+        		$order=$row[0];
+        		$by=$val[0];
+        	}
+            else
+            {
+                $this->error(4);
+            }
+        }
+       
+       
+        $results=$this->ci->db
+        ->from($this->table)
+        ->like($var)
+        ->order_by($order,$by)
+        ->limit($limit)
+        ->get()
+        ->result();
+        return $results;
+        $this->error(3);    
+    }
+
+    protected function min($var)
+    {  
+        $results=$this->ci->db
+        ->from($this->table)
+        ->select_min($var)
+        ->get()
+        ->result();
+        return $results;
+        $this->error(3);    
+    }
+
+    protected function max($var)
+    {  
+        $results=$this->ci->db
+        ->from($this->table)
+        ->select_max($var)
+        ->get()
+        ->result();
+        return $results;
+        $this->error(3);    
+    }
+
+    protected function sum($var)
+    {  
+        $results=$this->ci->db
+        ->from($this->table)
+        ->select_sum($var)
+        ->get()
+        ->result();
+        return $results;
+        $this->error(3);    
+    }
+
+    protected function avg($var)
+    {  
+        $results=$this->ci->db
+        ->from($this->table)
+        ->select_avg($var)
+        ->get()
+        ->result();
+        return $results;
+        $this->error(3);    
+    }
+
+    protected function query($query)
+    {  
+       return $this->ci->db->query($query)->result();  
+    }
+
+    function error($err)
     {
         switch ($err) 
         {
@@ -196,8 +265,15 @@ class Boostr
                 break;
 
         }
-       echo $error;
+       return show_error('Boostr Error<br> '.$error, 500);
        die();
     }
 
+
+	public static function __callStatic($name, $arguments)
+	{
+		$model = get_called_class();
+		return call_user_func_array( array(new $model, $name), $arguments );
+	}
+	
 }
