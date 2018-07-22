@@ -13,21 +13,23 @@
 class Model 
 {
 
-	protected $ci = null;
-	protected $table = "";
+    protected $ci = null;
+    protected $table = "";
+    protected $show ="";
 
-	function __construct()
-	{
-		$this->ci =& get_instance();
-	}
+    function __construct()
+    {
+        $this->ci =& get_instance();
+    }
 
 
-	protected function find($var)
+    protected function find($var)
     {
         if(is_array($var))    
         {
             $results=$this->ci->db 
             ->from($this->table)
+            ->select($this->show)
             ->where($var)
             ->get()
             ->row();
@@ -40,6 +42,7 @@ class Model
                 {
                     $results=$this->ci->db
                     ->from($this->table)
+                    ->select($this->show)
                     ->where($field->name,$var)
                     ->get()
                     ->row();
@@ -51,18 +54,18 @@ class Model
 
    protected function select($var=array(),$order=null,$limit=null)
     {  
-    	$order=null; 
-    	$by=null; 
+        $order=null; 
+        $by=null; 
         if(!is_array($var)){$this->error(7);}
         if($order!=null)
         {
-        	if(is_array($order))
-        	{
-        		$row=array_keys($order);
-        		$val=array_values($order);
-        		$order=$row[0];
-        		$by=$val[0];
-        	}
+            if(is_array($order))
+            {
+                $row=array_keys($order);
+                $val=array_values($order);
+                $order=$row[0];
+                $by=$val[0];
+            }
             else
             {
                 $this->error(4);
@@ -72,6 +75,7 @@ class Model
        
         $results=$this->ci->db
         ->from($this->table)
+        ->select($this->show)
         ->where($var)
         ->order_by($order,$by)
         ->limit($limit)
@@ -148,9 +152,9 @@ class Model
 
     protected function count($var=array())
     {
-    	if(!is_array($var)){return $this->error(3);}
+        if(!is_array($var)){return $this->error(3);}
 
-    	$results=$this->ci->db
+        $results=$this->ci->db
         ->from($this->table)
         ->where($var)
         ->count_all_results();
@@ -159,18 +163,18 @@ class Model
 
     protected function like($var=array(),$order=null,$limit=null)
     {  
-    	$order=null; 
-    	$by=null; 
+        $order=null; 
+        $by=null; 
         if(!is_array($var)){$this->error(7);}
         if($order!=null)
         {
-        	if(is_array($order))
-        	{
-        		$row=array_keys($order);
-        		$val=array_values($order);
-        		$order=$row[0];
-        		$by=$val[0];
-        	}
+            if(is_array($order))
+            {
+                $row=array_keys($order);
+                $val=array_values($order);
+                $order=$row[0];
+                $by=$val[0];
+            }
             else
             {
                 $this->error(4);
@@ -180,6 +184,7 @@ class Model
        
         $results=$this->ci->db
         ->from($this->table)
+        ->select($this->show)
         ->like($var)
         ->order_by($order,$by)
         ->limit($limit)
@@ -270,10 +275,10 @@ class Model
     }
 
 
-	public static function __callStatic($name, $arguments)
-	{
-		$model = get_called_class();
-		return call_user_func_array( array(new $model, $name), $arguments );
-	}
-	
+    public static function __callStatic($name, $arguments)
+    {
+        $model = get_called_class();
+        return call_user_func_array( array(new $model, $name), $arguments );
+    }
+    
 }
