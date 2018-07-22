@@ -37,19 +37,15 @@ Here are some properties you can use to customize the model
 ## Querying
 ### İnsert
 ```php
-$data=['name'=>'Furkan','surname'=>'Gurel'];
 User::insert($data);
 ```
 
 ### Update
 ```php
-$data=['name'=>'Jack'];
 User::update($id,$data);
 ```
 You can also update multiple data.
 ```php
-$where=['age'=>20]
-$data=['name'=>'Jack'];
 User::update($where,$data); // $where and  $data must be an array
 ```
 
@@ -59,7 +55,6 @@ User::delete($id);
 ```
 You can also delete multiple data.
 ```php
-$where=['age'=>20]
 User::delete($where); // $where  must be an array
 ```
 
@@ -77,8 +72,7 @@ foreach($users as $user)
 ```php
 $user = User::find($id);
 // or
-$data=['name'=>'Furkan'];
-$user = User::find($data);
+$user = User::find($where);
 ```
 
 ### Like
