@@ -15,7 +15,7 @@ Simple Query Library. İnsert, Update, Delete, Find, Select, Count, Max, Min, Ag
 
 ## Usage
 ### Defining Models
-Models in Elegant ORM (as in other ORMs) represent a single table to work with. To define a model, it's about the same with  CodeIgniter, but instead of extending `CI_Model`, the ORM model should extends `Boostr\Model` class.
+Models in Boostr represent a single table to work with. To define a model, it's about the same with  CodeIgniter, but instead of extending `CI_Model`, the  model should extends `Boostr\Model` class.
 
 *Example:* Model for table user, located in `models/user.php`
 
