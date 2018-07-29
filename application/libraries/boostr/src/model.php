@@ -191,7 +191,7 @@ class Model
         ->from($this->table)
         ->select($this->show)
         ->where($var)
-        ->join($join[0],''.$join[0].'.'.$joinprimary.'='.$join[1])
+        ->join($join[0],''.$join[0].'.'.$joinprimary.'='.$join[0].'.'.$join[1])
         ->order_by($order,$by)
         ->limit($limit)
         ->get()
