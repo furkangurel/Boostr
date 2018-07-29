@@ -17,9 +17,15 @@ class Model
     protected $table = "";
     protected $show ="";
 
+
     function __construct()
     {
         $this->ci =& get_instance();
+        if (!$this->ci->db->table_exists($this->table))
+        {
+            $this->error(3);
+        }
+        $this->primary=$this->ci->db->query("SHOW KEYS FROM ".$this->table." WHERE Key_name = 'PRIMARY'")->row('Column_name'); 
     }
 
 
@@ -35,28 +41,21 @@ class Model
             ->row();
             return $results;    
         }
-        $fields = $this->ci->db->field_data($this->table);
-        foreach ($fields as $field)
-        {
-                if($field->primary_key)
-                {
-                    $results=$this->ci->db
-                    ->from($this->table)
-                    ->select($this->show)
-                    ->where($field->name,$var)
-                    ->get()
-                    ->row();
-                    return $results;
-                }
-        }
-        $this->error(3);        
+    
+        $results=$this->ci->db
+        ->from($this->table)
+        ->select($this->show)
+        ->where($this->primary,$var)
+        ->get()
+        ->row();
+        return $results;      
     }
 
    protected function select($var=array(),$order=null,$limit=null)
     {  
         $order=null; 
         $by=null; 
-        if(!is_array($var)){$this->error(7);}
+        if(!is_array($var)){$this->error(5);}
         if($order!=null)
         {
             if(is_array($order))
@@ -66,12 +65,8 @@ class Model
                 $order=$row[0];
                 $by=$val[0];
             }
-            else
-            {
-                $this->error(4);
-            }
+                $this->error(2);
         }
-       
        
         $results=$this->ci->db
         ->from($this->table)
@@ -82,7 +77,6 @@ class Model
         ->get()
         ->result();
         return $results;
-        $this->error(3);    
     }
 
    protected function delete($var)
@@ -94,18 +88,11 @@ class Model
            ->delete($this->table,$var);
            return $results;    
         }
-        $fields = $this->ci->db->field_data($this->table);
-        foreach ($fields as $field)
-        {
-                if($field->primary_key)
-                {
-                    $results=$this->ci
-                    ->db
-                    ->delete($this->table,array($field->name=>$var));
-                    return $results;    
-                }
-        }
-        $this->error(3); 
+           $results=$this
+           ->ci
+           ->db
+           ->delete($this->table,array($primary=>$var));
+           return $results;    
     }
 
    protected  function insert($var=array())
@@ -116,7 +103,7 @@ class Model
             ->insert($this->table,$var);
             return $results;
         }
-        $this->error(5);
+        $this->error(3);
    }
 
    protected function update($var,$data)
@@ -124,7 +111,7 @@ class Model
 
         if(!is_array($data))
         {
-            $this->error(6);
+            $this->error(4);
         }
 
         if(is_array($var))    
@@ -133,26 +120,17 @@ class Model
             ->where($var)
             ->update($this->table,$data);
             return $results;
-        }else
-        {
-            $fields = $this->ci->db->field_data($this->table);
-            foreach ($fields as $field)
-            {
-                    if($field->primary_key)
-                    {
-                       $results=$this->ci->db
-                        ->where($field->name,$var)
-                        ->update($this->table,$data);
-                        return $results;
-                    }
-            }
-            $this->error(3);     
         }
+            $results=$this->ci->db
+            ->where($primary,$var)
+            ->update($this->table,$data);
+             return $results;
+        
     }
 
     protected function count($var=array())
     {
-        if(!is_array($var)){return $this->error(3);}
+        if(!is_array($var)){return $this->error(5);}
 
         $results=$this->ci->db
         ->from($this->table)
@@ -165,7 +143,7 @@ class Model
     {  
         $order=null; 
         $by=null; 
-        if(!is_array($var)){$this->error(7);}
+        if(!is_array($var)){$this->error(5);}
         if($order!=null)
         {
             if(is_array($order))
@@ -175,10 +153,7 @@ class Model
                 $order=$row[0];
                 $by=$val[0];
             }
-            else
-            {
-                $this->error(4);
-            }
+                $this->error(2);
         }
        
        
@@ -190,8 +165,38 @@ class Model
         ->limit($limit)
         ->get()
         ->result();
-        return $results;
-        $this->error(3);    
+        return $results;  
+    }
+
+    protected function join($join,$var=array(),$order=null,$limit=null)
+    {  
+        $order=null; 
+        $by=null; 
+        if(!is_array($var)){$this->error(5);}
+        if(!is_array($join)){$this->error(6);}
+        if($order!=null)
+        {
+            if(is_array($order))
+            {
+                $row=array_keys($order);
+                $val=array_values($order);
+                $order=$row[0];
+                $by=$val[0];
+            }
+                $this->error(2);
+        }
+
+        $joinprimary=$this->ci->db->query("SHOW KEYS FROM ".$join[0]." WHERE Key_name = 'PRIMARY'")->row('Column_name'); 
+        $results=$this->ci->db
+        ->from($this->table)
+        ->select($this->show)
+        ->where($var)
+        ->join($join[0],''.$join[0].'.'.$joinprimary.'='.$join[1])
+        ->order_by($order,$by)
+        ->limit($limit)
+        ->get()
+        ->result();
+        return $results;  
     }
 
     protected function min($var)
@@ -201,8 +206,7 @@ class Model
         ->select_min($var)
         ->get()
         ->result();
-        return $results;
-        $this->error(3);    
+        return $results;   
     }
 
     protected function max($var)
@@ -212,8 +216,7 @@ class Model
         ->select_max($var)
         ->get()
         ->result();
-        return $results;
-        $this->error(3);    
+        return $results;   
     }
 
     protected function sum($var)
@@ -223,8 +226,7 @@ class Model
         ->select_sum($var)
         ->get()
         ->result();
-        return $results;
-        $this->error(3);    
+        return $results; 
     }
 
     protected function avg($var)
@@ -234,8 +236,7 @@ class Model
         ->select_avg($var)
         ->get()
         ->result();
-        return $results;
-        $this->error(3);    
+        return $results;  
     }
 
     protected function query($query)
@@ -247,26 +248,23 @@ class Model
     {
         switch ($err) 
         {
-                case 0:
-                $error='İf use the Boostr make the system on. Config => boostr.php => system="on"';
-                break;
                 case 1:
-                $error='You have not specified a Table Name.';
-                break;
-                case 3:
                 $error="Table named ".$this->table." was not found.";
                 break;
-                case 4:
+                case 2:
                 $error='Order_by data should be sent as an array().';
                 break;
-                case 5:
+                case 3:
                 $error='İnsert data should be sent as an array()';
                 break;
-                case 6:
+                case 4:
                 $error='Update data should be sent as an array()';
                 break;
-                case 7:
+                case 5:
                 $error='Where query should be sent as an array()';
+                break;
+                case 6:
+                $error='Join query should be sent as an array()';
                 break;
 
         }
