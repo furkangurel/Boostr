@@ -1,6 +1,6 @@
  # BOOSTR - Codeigniter Easy Query Library
 
-Simple Query Library. İnsert, Update, Delete, Find, Select, Count, Max, Min, Aggregate
+Simple Query Library. İnsert, Update, Delete, Find, Select, Join, Count, Max, Min, Aggregate
 
 
 ## Installation
@@ -82,6 +82,12 @@ foreach($users as $user)
 {
   echo $user->name;
 }
+```
+
+### Join
+```php
+$join=['users','id'];   // first parameter which join table. second parameter which join column
+Posts::join($join,$where,$order_by,$limit);  // join, $where, $order_by  must be an array.
 ```
 
 ### Count
