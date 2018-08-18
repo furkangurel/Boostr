@@ -13,23 +13,23 @@
 class Model 
 {
 
-    protected $ci = null;
+	protected $ci = null;
     protected $table = "";
     protected $show ="";
 
 
-    function __construct()
-    {
-        $this->ci =& get_instance();
+	function __construct()
+	{
+		$this->ci =& get_instance();
         if (!$this->ci->db->table_exists($this->table))
         {
-            $this->error(3);
+            $this->error(1);
         }
         $this->primary=$this->ci->db->query("SHOW KEYS FROM ".$this->table." WHERE Key_name = 'PRIMARY'")->row('Column_name'); 
-    }
+	}
 
 
-    protected function find($var)
+	protected function find($var)
     {
         if(is_array($var))    
         {
@@ -53,18 +53,18 @@ class Model
 
    protected function select($var=array(),$order=null,$limit=null)
     {  
-        $order=null; 
-        $by=null; 
+    	$order=null; 
+    	$by=null; 
         if(!is_array($var)){$this->error(5);}
         if($order!=null)
         {
-            if(is_array($order))
-            {
-                $row=array_keys($order);
-                $val=array_values($order);
-                $order=$row[0];
-                $by=$val[0];
-            }
+        	if(is_array($order))
+        	{
+        		$row=array_keys($order);
+        		$val=array_values($order);
+        		$order=$row[0];
+        		$by=$val[0];
+        	}
                 $this->error(2);
         }
        
@@ -122,7 +122,7 @@ class Model
             return $results;
         }
             $results=$this->ci->db
-            ->where($primary,$var)
+            ->where($this->primary,$var)
             ->update($this->table,$data);
              return $results;
         
@@ -130,9 +130,9 @@ class Model
 
     protected function count($var=array())
     {
-        if(!is_array($var)){return $this->error(5);}
+    	if(!is_array($var)){return $this->error(5);}
 
-        $results=$this->ci->db
+    	$results=$this->ci->db
         ->from($this->table)
         ->where($var)
         ->count_all_results();
@@ -141,18 +141,18 @@ class Model
 
     protected function like($var=array(),$order=null,$limit=null)
     {  
-        $order=null; 
-        $by=null; 
+    	$order=null; 
+    	$by=null; 
         if(!is_array($var)){$this->error(5);}
         if($order!=null)
         {
-            if(is_array($order))
-            {
-                $row=array_keys($order);
-                $val=array_values($order);
-                $order=$row[0];
-                $by=$val[0];
-            }
+        	if(is_array($order))
+        	{
+        		$row=array_keys($order);
+        		$val=array_values($order);
+        		$order=$row[0];
+        		$by=$val[0];
+        	}
                 $this->error(2);
         }
        
@@ -273,10 +273,10 @@ class Model
     }
 
 
-    public static function __callStatic($name, $arguments)
-    {
-        $model = get_called_class();
-        return call_user_func_array( array(new $model, $name), $arguments );
-    }
-    
+	public static function __callStatic($name, $arguments)
+	{
+		$model = get_called_class();
+		return call_user_func_array( array(new $model, $name), $arguments );
+	}
+	
 }
