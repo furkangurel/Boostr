@@ -13,23 +13,29 @@
 class Model 
 {
 
-	protected $ci = null;
+    protected $ci = null;
     protected $table = "";
     protected $show ="";
+    protected $date ="";
+    protected $slug =[];
 
 
-	function __construct()
-	{
-		$this->ci =& get_instance();
+    function __construct()
+    {
+        $this->ci =& get_instance();
         if (!$this->ci->db->table_exists($this->table))
-        {
-            $this->error(1);
-        }
+        {$this->error(1);}
         $this->primary=$this->ci->db->query("SHOW KEYS FROM ".$this->table." WHERE Key_name = 'PRIMARY'")->row('Column_name'); 
-	}
+        if($this->date){if($this->ci->db->field_exists($this->date, $this->table)){$this->time_ago=true;}else{$this->error(7);}}
+        if($this->slug)
+            {
+                if(!$this->ci->db->field_exists($this->slug[0], $this->table)){$this->error(8);}
+                if(!$this->ci->db->field_exists($this->slug[1], $this->table)){$this->error(8);}
+            }
+    }
 
 
-	protected function find($var)
+    protected function find($var)
     {
         if(is_array($var))    
         {
@@ -39,6 +45,11 @@ class Model
             ->where($var)
             ->get()
             ->row();
+            if($this->date)
+            {
+                $date=$this->date;
+                $results->time_ago=$this->time($results->$date);
+            }
             return $results;    
         }
     
@@ -48,23 +59,28 @@ class Model
         ->where($this->primary,$var)
         ->get()
         ->row();
+        if($this->date)
+            {
+                $date=$this->date;
+                $results->time_ago=$this->time($results->$date);
+            }
         return $results;      
     }
 
    protected function select($var=array(),$order=null,$limit=null)
     {  
-    	$order=null; 
-    	$by=null; 
+        $order=null; 
+        $by=null; 
         if(!is_array($var)){$this->error(5);}
         if($order!=null)
         {
-        	if(is_array($order))
-        	{
-        		$row=array_keys($order);
-        		$val=array_values($order);
-        		$order=$row[0];
-        		$by=$val[0];
-        	}
+            if(is_array($order))
+            {
+                $row=array_keys($order);
+                $val=array_values($order);
+                $order=$row[0];
+                $by=$val[0];
+            }
                 $this->error(2);
         }
        
@@ -91,7 +107,7 @@ class Model
            $results=$this
            ->ci
            ->db
-           ->delete($this->table,array($primary=>$var));
+           ->delete($this->table,array($this->primary=>$var));
            return $results;    
     }
 
@@ -99,6 +115,10 @@ class Model
    {
         if(is_array($var))    
         {
+            if($this->slug)
+            {
+                $var[$this->slug[0]]=$this->sef($var[$this->slug[1]]);
+            }
             $results=$this->ci->db
             ->insert($this->table,$var);
             return $results;
@@ -113,7 +133,14 @@ class Model
         {
             $this->error(4);
         }
-
+        if($this->slug)
+            {
+                if(isset($data[$this->slug[1]]))
+                {
+                    $data[$this->slug[0]]=$this->sef($data[$this->slug[1]]);
+                }
+                
+            } 
         if(is_array($var))    
         {
             $results=$this->ci->db
@@ -125,14 +152,13 @@ class Model
             ->where($this->primary,$var)
             ->update($this->table,$data);
              return $results;
-        
     }
 
     protected function count($var=array())
     {
-    	if(!is_array($var)){return $this->error(5);}
+        if(!is_array($var)){return $this->error(5);}
 
-    	$results=$this->ci->db
+        $results=$this->ci->db
         ->from($this->table)
         ->where($var)
         ->count_all_results();
@@ -141,18 +167,18 @@ class Model
 
     protected function like($var=array(),$order=null,$limit=null)
     {  
-    	$order=null; 
-    	$by=null; 
+        $order=null; 
+        $by=null; 
         if(!is_array($var)){$this->error(5);}
         if($order!=null)
         {
-        	if(is_array($order))
-        	{
-        		$row=array_keys($order);
-        		$val=array_values($order);
-        		$order=$row[0];
-        		$by=$val[0];
-        	}
+            if(is_array($order))
+            {
+                $row=array_keys($order);
+                $val=array_values($order);
+                $order=$row[0];
+                $by=$val[0];
+            }
                 $this->error(2);
         }
        
@@ -266,17 +292,64 @@ class Model
                 case 6:
                 $error='Join query should be sent as an array()';
                 break;
+                case 7:
+                $error='Date column not found';
+                break;
+                case 8:
+                $error='Slug tables not found';
+                break;
 
         }
        return show_error('Boostr Error<br> '.$error, 500);
        die();
     }
+    function time($date) {
+    
+    $date =  strtotime($date);
+    $zaman_farki = time() - $date;
+    $saniye = $zaman_farki;
+    $dakika = round($zaman_farki/60);
+    $saat = round($zaman_farki/3600);
+    $gun = round($zaman_farki/86400);
+    $hafta = round($zaman_farki/604800);
+    $ay = round($zaman_farki/2419200);
+    $yil = round($zaman_farki/29030400);
+    if( $saniye < 60 ){
+        if ($saniye == 0){
+            return "az önce";
+        } else {
+            return $saniye .' saniye önce';
+        }
+    } else if ( $dakika < 60 ){
+        return $dakika .' dakika önce';
+    } else if ( $saat < 24 ){
+        return $saat.' saat önce';
+    } else if ( $gun < 7 ){
+        return $gun .' gün önce';
+    } else if ( $hafta < 4 ){
+        return $hafta.' hafta önce';
+    } else if ( $ay < 12 ){
+        return $ay .' ay önce';
+    } else {
+        return $yil.' yıl önce';
+    }
+}
+function sef($text)
+{
+$find = array('Ç', 'Ş', 'Ğ', 'Ü', 'İ', 'Ö', 'ç', 'ş', 'ğ', 'ü', 'ö', 'ı', '+', '#');
+$replace = array('c', 's', 'g', 'u', 'i', 'o', 'c', 's', 'g', 'u', 'o', 'i', 'plus', 'sharp');
+$text = strtolower(str_replace($find, $replace, $text));
+$text = preg_replace("@[^A-Za-z0-9\-_\.\+]@i", ' ', $text);
+$text = trim(preg_replace('/\s+/', ' ', $text));
+$text = str_replace(' ', '-', $text);
+return $text;
+}
 
 
-	public static function __callStatic($name, $arguments)
-	{
-		$model = get_called_class();
-		return call_user_func_array( array(new $model, $name), $arguments );
-	}
-	
+    public static function __callStatic($name, $arguments)
+    {
+        $model = get_called_class();
+        return call_user_func_array( array(new $model, $name), $arguments );
+    }
+    
 }
