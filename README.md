@@ -1,6 +1,12 @@
  # BOOSTR - Codeigniter Easy Query Library
 
-Simple Query Library. İnsert, Update, Delete, Find, Select, Join, Count, Max, Min, Aggregate
+ Simple Query Library. İnsert, Update, Delete, Find, Select, Join, Count, Max, Min, Aggregate
+
+ ## Version2
+ added time_ago function and slug function.
+
+
+
 
 
 ## Installation
@@ -22,7 +28,9 @@ Models in Boostr represent a single table to work with. To define a model, it's 
 ```php
 class User extends Boostr\Model {
   protected $table = "user";
-  protected $show = "name , surname , age";  
+  protected $show = "name , surname , age";
+  protected $slug= ['slug','title']; 
+  protected $date="created_at";
 }
 ```
 
@@ -33,6 +41,8 @@ Here are some properties you can use to customize the model
 
 - `$table` : to define the table name. This property is mandatory to set
 - `$show` : to define which  columns show. By default it uses all columns
+- `$slug` : first parameter slug column - second parameter which table will slug
+- `$date` : which table will be used in the date
 
 ## Querying
 ### İnsert
