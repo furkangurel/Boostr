@@ -13,16 +13,16 @@
 class Model 
 {
 
-    protected $ci = null;
+	protected $ci = null;
     protected $table = "";
     protected $show ="";
     protected $date ="";
     protected $slug =[];
 
 
-    function __construct()
-    {
-        $this->ci =& get_instance();
+	function __construct()
+	{
+		$this->ci =& get_instance();
         if (!$this->ci->db->table_exists($this->table))
         {$this->error(1);}
         $this->primary=$this->ci->db->query("SHOW KEYS FROM ".$this->table." WHERE Key_name = 'PRIMARY'")->row('Column_name'); 
@@ -32,10 +32,10 @@ class Model
                 if(!$this->ci->db->field_exists($this->slug[0], $this->table)){$this->error(8);}
                 if(!$this->ci->db->field_exists($this->slug[1], $this->table)){$this->error(8);}
             }
-    }
+	}
 
 
-    protected function find($var)
+	protected function find($var)
     {
         if(is_array($var))    
         {
@@ -67,23 +67,28 @@ class Model
         return $results;      
     }
 
-   protected function select($var=array(),$order=null,$limit=null)
+   protected function select($var=array(),$order_by=null,$limit=null)
     {  
-        $order=null; 
-        $by=null; 
+
+    	$order=null; 
+    	$by=null; 
         if(!is_array($var)){$this->error(5);}
-        if($order!=null)
+        if($order_by!=null)
         {
-            if(is_array($order))
+
+        	if(is_array($order_by))
+        	{
+        		$row=array_keys($order_by);
+        		$val=array_values($order_by);
+        		$order=$row[0];
+        		$by=$val[0];
+        	}else
             {
-                $row=array_keys($order);
-                $val=array_values($order);
-                $order=$row[0];
-                $by=$val[0];
-            }
                 $this->error(2);
+            }
+            
         }
-       
+
         $results=$this->ci->db
         ->from($this->table)
         ->select($this->show)
@@ -154,31 +159,67 @@ class Model
              return $results;
     }
 
+
+   protected function group($grup_by=null,$var=array(),$order_by=null,$limit=null)
+    {  
+
+        $order=null; 
+        $by=null; 
+        if(!is_array($var)){$this->error(5);}
+        if($order_by!=null)
+        {
+
+            if(is_array($order_by))
+            {
+                $row=array_keys($order_by);
+                $val=array_values($order_by);
+                $order=$row[0];
+                $by=$val[0];
+            }else
+            {
+                $this->error(2);
+            }
+            
+        }
+
+       
+        $results=$this->ci->db
+        ->from($this->table)
+        ->select($this->show)
+        ->group_by($grup_by)
+        ->where($var)
+        ->order_by($order,$by)
+        ->limit($limit)
+        ->get()
+        ->result();
+        return $results;
+    }
+
     protected function count($var=array())
     {
-        if(!is_array($var)){return $this->error(5);}
+    	if(!is_array($var)){return $this->error(5);}
 
-        $results=$this->ci->db
+    	$results=$this->ci->db
         ->from($this->table)
         ->where($var)
         ->count_all_results();
         return $results;   
     }
 
-    protected function like($var=array(),$order=null,$limit=null)
+    protected function like($var=array(),$order_by=null,$limit=null)
     {  
-        $order=null; 
-        $by=null; 
+    	$order=null; 
+    	$by=null; 
         if(!is_array($var)){$this->error(5);}
         if($order!=null)
         {
-            if(is_array($order))
-            {
-                $row=array_keys($order);
-                $val=array_values($order);
-                $order=$row[0];
-                $by=$val[0];
-            }
+        	if(is_array($order))
+        	{
+        		$row=array_keys($order_by);
+        		$val=array_values($order_by);
+        		$order=$row[0];
+        		$by=$val[0];
+        	}
                 $this->error(2);
         }
        
@@ -194,7 +235,7 @@ class Model
         return $results;  
     }
 
-    protected function join($join,$var=array(),$order=null,$limit=null)
+    protected function join($join,$var=array(),$order_by=null,$limit=null)
     {  
         $order=null; 
         $by=null; 
@@ -204,8 +245,8 @@ class Model
         {
             if(is_array($order))
             {
-                $row=array_keys($order);
-                $val=array_values($order);
+                $row=array_keys($order_by);
+                $val=array_values($order_by);
                 $order=$row[0];
                 $by=$val[0];
             }
@@ -217,7 +258,7 @@ class Model
         ->from($this->table)
         ->select($this->show)
         ->where($var)
-        ->join($join[0],''.$join[0].'.'.$joinprimary.'='.$join[0].'.'.$join[1])
+        ->join($join[0],''.$join[1].'='.$join[2])
         ->order_by($order,$by)
         ->limit($limit)
         ->get()
@@ -346,10 +387,10 @@ return $text;
 }
 
 
-    public static function __callStatic($name, $arguments)
-    {
-        $model = get_called_class();
-        return call_user_func_array( array(new $model, $name), $arguments );
-    }
-    
+	public static function __callStatic($name, $arguments)
+	{
+		$model = get_called_class();
+		return call_user_func_array( array(new $model, $name), $arguments );
+	}
+	
 }
